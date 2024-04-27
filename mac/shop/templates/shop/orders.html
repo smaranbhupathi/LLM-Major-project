@@ -1,0 +1,214 @@
+{% extends 'shop/basic.html' %}
+
+{% block css %}
+    .order-container {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin: 0px 150px 20px 150px;
+
+    }
+
+    .order-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+
+    }
+
+    .order-items {
+        margin-bottom: 10px;
+text-align: center;
+    }
+
+    .total {
+        font-weight: bold;
+    }
+
+    .shipped-address {
+        font-style: italic;
+    }
+
+    .rating-container {
+        display: inline-block;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .delivered {
+        color: green;
+    }
+
+    .star {
+        color: gray;
+        transition: color 0.3s ease;
+    }
+
+    .star.hovered, .star:hover {
+        color: gold;
+    }
+
+    .col {
+        color: gold;
+        padding: 0px;
+        transition: color 0.3s ease;
+    }
+
+    .comment-form {
+        margin-top: 10px;
+    }
+
+    .comment-form textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        box-sizing: border-box;
+    }
+
+    .comment-form button {
+        margin-top: 5px;
+        padding: 8px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .comment-form button:hover {
+        background-color: #45a049;
+    }
+
+    /* Add styles for the card layout */
+    .product-card {
+        background-color: #f8f9fa; /* Light background color */
+        border: 1px solid #dee2e6; /* Border color */
+        border-radius: 8px; /* Border radius */
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .product-image {
+        max-width: 100px; /* Adjust the max width of the image */
+        margin-right: 15px; /* Add some margin between image and details */
+    }
+{% endblock %}
+
+{% block body %}
+    {% if len == 0 %}
+        <h1 class="my-4 text-center">No orders placed! Happy shopping</h1>
+    {% endif %}
+
+    {% for order in orders %}
+        <div class="order-container mx-10">
+            <div class="order-details">
+                <div>Shipped To: <strong>{{ order.shipto }}</strong> </div>
+                <div>Order ID: {{ order.order_id }}</div>
+                <div class="delivered">Delivered: {{ order.timestamp }}</div>
+            </div>
+
+            {% for key, item_data in order.items_json.items %}
+                {% with qty=item_data.0|floatformat item=item_data.1 price=item_data.2|floatformat:"2" %}
+                    <div class="product-card">
+                        <div class="d-flex justify-content-between" >
+                            <div class="product-image">
+                                <img src="/media/{{ item_data.3 }}" alt="{{ item }}" width="100" height="100">
+                            </div>
+                            <div style = "text-align: center">
+                                <h5>{{ item }}</h5>
+                                <p>Quantity: {{ qty }}</p>
+                                <p>Price: Rs. {{ price }}</p>
+                            </div>
+
+                            <div>
+                                <form method="post" id="rating-form-{{ key }}" action="{% url 'add_rating' order.order_id key %}" onsubmit="submitRating(event, '{{ key }}')">
+                            {% csrf_token %}
+                            <label for="rating">Rating: </label>
+                            <div class="rating-container" data-product="{{ key }}">
+                                {% for _ in "12345" %}
+                                    {% if forloop.counter <= item_data.4 %}
+                                        <span class="col" data-rating="{{ forloop.counter }}" onclick="highlightAndSubmit(event, 'rating-form-{{ key }}')">&#9733;</span>
+                                    {% else %}
+                                        <span class="star" data-rating="{{ forloop.counter }}" onclick="highlightAndSubmit(event, 'rating-form-{{ key }}')">&#9733;</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" id="selected-rating-{{ key }}" required>
+                        </form>
+
+                        <span id="divpr{{ key }}" class="divpr" data-key="{{ key }}">
+                            <button id="{{ key }}" class="btn btn-primary cart" onclick="toggleCommentForm('{{ key }}')">Comment</button>
+                        </span>
+
+                        <form method="post" style="display: none;" id="comment-form-{{ key }}" action="{% url 'add_comment' order.order_id key %}">
+                            {% csrf_token %}
+                            <textarea class="comment-input my-2" style="resize: vertical; max-width:150px" name="comment" rows="4" cols="50"></textarea>
+                            <br>
+                            <input class="login-submit my-1" type="submit" value="Submit" />
+                        </form>
+                            </div>
+                        </div>
+
+                    </div>
+                {% endwith %}
+            {% endfor %}
+
+            <div class="d-flex justify-content-between" >
+                <div>
+                    <div class="total">
+                        Total: Rs. {{ order.amount }}
+                    </div>
+
+                    <div class="shipped-address">
+                        Shipped Address: {{ order.address }}, {{ order.city }}, {{ order.state }} {{ order.zip_code }}
+                    </div>
+                </div>
+
+                <form action="{% url 'invoice' order.order_id %}" method="get">
+                <button type="submit" class="btn btn-primary cart">Invoice</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block js %}
+    <script>
+        function highlightAndSubmit(event, formId) {
+            const productKey = event.currentTarget.parentElement.dataset.product;
+            console.log(productKey);
+            const selectedRating = event.target.dataset.rating;
+
+            const stars = document.querySelectorAll(`#${formId} .rating-container[data-product="${productKey}"] .star`);
+            let hoverDetected = false;
+
+            stars.forEach(star => {
+                const rating = star.dataset.rating;
+                const hovered = rating <= selectedRating;
+
+                star.classList.toggle('hovered', hovered);
+
+                // Detect if the current star is being hovered
+                if (event.target === star) {
+                    hoverDetected = true;
+                }
+
+                // Highlight left stars up to the current hovered star
+                if (hoverDetected && rating <= selectedRating) {
+                    star.classList.add('hovered');
+                }
+            });
+
+            document.getElementById(`selected-rating-${productKey}`).value = selectedRating;
+            console.log(formId);
+            document.getElementById(formId).submit();
+            // Uncomment this line if you want to submit the form when a star is clicked
+        }
+
+        function toggleCommentForm(productKey) {
+            const commentForm = document.getElementById(`comment-form-${productKey}`);
+            commentForm.style.display = (commentForm.style.display === 'none') ? 'block' : 'none';
+        }
+    </script>
+{% endblock %}

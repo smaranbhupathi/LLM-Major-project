@@ -1,0 +1,259 @@
+{% extends 'shop/basic.html' %}
+
+{% block title%} {{product.product_name}} - My Awesome Cart{% endblock %}
+
+{% block css %}
+.star {
+    color: gray;  /* Default color for unrated stars */
+<!--    font-size: 20px;-->
+}
+
+.star.rated {
+    color: gold;  /* Color for rated stars */
+}
+
+#rating-container {
+    font-size: 24px;
+<!--    margin-top: 10px;-->
+}
+
+#rating-container span {
+    cursor: pointer;
+}
+
+#rating-container .star {
+    margin-right: 5px;
+}
+
+#rating-container .rated {
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+}
+
+.comment-container {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.comment {
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.commenter {
+    font-weight: bold;
+}
+
+.comment-content {
+    margin-left: 10px;
+}
+
+.comment-date {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    font-size: 0.8em;
+}
+
+.sort-comments {
+    margin-top: 10px;
+}
+
+.sort-comments label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.sort-comments select {
+    padding: 5px;
+}
+
+.comment-card {
+    margin-bottom: 15px;
+}
+
+
+.comment-card {
+    margin-bottom: 15px;
+}
+
+.comment-info {
+    font-size: 1em; /* Adjust the commenter's name text size */
+    display: flex;
+    justify-content: space-between;
+}
+
+.comment-info .commenter {
+    order: 1; /* Display commenter name on the left */
+}
+
+.comment-info .comment-date {
+    order: 2; /* Display date on the right */
+    font-size: 0.8em; /* Adjust the date text size */
+}
+
+.comment-content {
+    margin-top: 10px;
+}
+
+
+.line {
+    border-bottom: 1px solid #878a8e; /* Adjust color and thickness as needed */
+    margin: 10px 0; /* Adjust margin as needed */
+}
+
+
+{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-4">
+<!--            <div class="row">-->
+                <img src="/media/{{product.image}}" width="233px" height="385px">
+<!--            </div>-->
+            <div class="row mt-3">
+                <button class="btn btn-primary mx-4 buy" id="buypr{{product.id}}" data-id ="pr{{product.id}}"  >Buy Now</button>
+                 <span id="divpr{{product.id}}" class="divpr">
+                    <button id="pr{{product.id}}" class="btn btn-primary cart">Add To Cart</button>
+                </span>
+<!--                <button class="divpr btn btn-primary cart" id="pr{{product.id}}">Add To Cart</button>-->
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h5 id="namepr{{product.id}}">{{product.product_name}}</h5>
+            <p >{{product.desc}}</p>
+
+            <!-- Display average rating -->
+            <p style="margin-bottom: 0rem">Rating: {{ average_rating|default:"Not yet rated"|floatformat:"1" }} | {{ reviewCount }} reviews</p>
+
+            <!-- Display stars for rating -->
+            <div id="rating-container">
+                {% for i in "12345" %}
+                    <span class="star {% if average_rating and i|add:"0" <= average_rating %}rated{% endif %}">&#9733;</span>
+                {% endfor %}
+            </div>
+
+            <div class="line"></div>
+
+
+            <p><b id="pricepr{{product.id}}" data-price="{{product.price}}" > Rs. {{product.price}} </b></p>
+
+
+
+
+            <div class="comment-container">
+                <h5>Customer Reviews</h5>
+<!--                <div class="sort-comments">-->
+<!--                    <label for="comment-sort">Sort by:</label>-->
+<!--                    <select id="comment-sort">-->
+<!--                        <option value="newest">Newest</option>-->
+<!--                        <option value="oldest">Oldest</option>-->
+<!--                    </select>-->
+<!--                </div>-->
+
+                <div id="comments-container">
+                    {% for review in reviews %}
+                        {% if review.comment %}
+                            <div class="card comment-card">
+                                <div class="card-body">
+                                    <div class="comment-info">
+
+                                    </div>
+                                    <div class="comment-content">
+                                        <p>{{ review.comment }}</p>
+                                        <p>{{ review.username }} | {{ review.timestamp|date:"F d, Y" }}</p>
+<!--                     <div class="line"></div>-->
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+
+    if (localStorage.getItem('cart') == null) {
+        var cart = {};
+    }
+    cart = JSON.parse(localStorage.getItem('cart'));
+
+        $('.divpr').on('click', 'button.cart', function() {
+
+        var idstr = this.id.toString();
+        name = document.getElementById('name'+idstr).innerHTML;
+        itemPrice = document.getElementById('price'+idstr).getAttribute("data-price");
+        console.log(itemPrice);
+
+        if (cart[idstr] != undefined) {
+            qty = cart[idstr][0] + 1;
+        }
+         else {
+            qty = 1;
+        }
+        cart[idstr] = [qty, name, itemPrice];
+            console.log(cart);
+        var sum2 = 0;
+        for (var item in cart) {
+            sum2 = sum2 + cart[item][0];
+        }
+        document.getElementById('cart').innerHTML = sum2;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCart(cart);
+    });
+
+    $('.buy').on('click', function() {
+        var idstr = this.getAttribute('data-id').toString();
+           console.log(idstr);
+           localStorage.clear();
+           cart = {}
+           name = document.getElementById('name'+idstr).innerHTML;
+            itemPrice = document.getElementById('price'+idstr).innerHTML;
+            itemPrice = document.getElementById('price'+idstr).getAttribute("data-price");
+            console.log("aaab");
+            console.log(itemPrice);
+                qty = 1;
+            cart[idstr] = [qty, name, itemPrice];
+                console.log(cart);
+            updateCart(cart);
+            window.location.href = '/checkout';
+        });
+
+
+<!--    document.getElementById('comment-sort').addEventListener('change', function() {-->
+<!--        const selectedSort = this.value;-->
+<!--        const commentsContainer = document.getElementById('comments-container');-->
+<!--        const comments = Array.from(commentsContainer.querySelectorAll('.comment-card'));-->
+
+<!--        comments.sort(function(a, b) {-->
+<!--            const dateA = new Date(a.querySelector('.comment-info .comment-date').textContent);-->
+<!--            const dateB = new Date(b.querySelector('.comment-info .comment-date').textContent);-->
+
+<!--            if (selectedSort === 'newest') {-->
+<!--                return dateB - dateA; // Sort in descending order for newest-->
+<!--            } else if (selectedSort === 'oldest') {-->
+<!--                return dateA - dateB; // Sort in ascending order for oldest-->
+<!--            }-->
+
+<!--            // Default: no sorting-->
+<!--            return 0;-->
+<!--        });-->
+
+<!--        // Clear the current comments-->
+<!--        commentsContainer.innerHTML = '';-->
+
+<!--        // Append the sorted comments back to the container-->
+<!--        comments.forEach(comment => {-->
+<!--            commentsContainer.appendChild(comment);-->
+<!--        });-->
+<!--    });-->
+</script>
+{% endblock %}

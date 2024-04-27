@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+          integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <title>{% block title%} {% endblock %}</title>
+    <style>
+        .dropdown-menu{
+            position: absolute,
+            top: searchInput.offset().top + searchInput.outerHeight(),
+            width: searchInput.outerWidth(),
+         }
+
+         #searchResults.dropdown-menu {
+            position: absolute;
+            left: 665px; /* Set the right position as needed */
+            max-width: 300px; /* Set the maximum width of the results container */
+            background-color: #fff; /* Set background color as needed */
+            border: 1px solid #ccc; /* Add border for styling */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add box shadow for styling */
+            z-index: 1000; /* Set a higher z-index to make sure it appears above other elements */
+            /* Add other styles as needed */
+        }
+
+
+<!--        #profile.dropdown-menu {-->
+<!--            position: absolute;-->
+<!--            max-width: 100px; /* Set the maximum width of the results container */-->
+<!--            background-color: #fff; /* Set background color as needed */-->
+<!--            border: 1px solid #ccc; /* Add border for styling */-->
+<!--            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add box shadow for styling */-->
+<!--            z-index: 1000; /* Set a higher z-index to make sure it appears above other elements */-->
+<!--            /* Add other styles as needed */-->
+<!--        }-->
+
+        .form-inline.my-2.my-lg-0 {
+        margin: 0 auto; /* Add this line to center the form horizontally */
+        text-align: center; /* Add this line to center the form horizontally */
+    }
+
+    body {
+    font-family: Signifer-Light, Sohne-Bold, Sohne-Regular, SohneMono-Bold, SohneMono-Regular;
+    background-color: #f9f9f9;
+}
+
+h1,h2,h3,h4{
+text-align: center;
+}
+
+.sessionButton {
+text-align: left;
+    width: 195px; /* Set the fixed width */
+    border: none; /* Remove border */
+    cursor: pointer; /* Set cursor to pointer */
+    background-color: #343a40;
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+
+}
+
+.sessionButton:hover {
+    background-color: #45a049; /* Button background color on hover */
+}
+
+.sessionButton:focus {
+    outline: none; /* Remove outline on focus */
+}
+
+#container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    padding: 0px;
+}
+
+#session-list {
+    flex: 1;
+    margin-right: 20px;
+    background-color: #343a40;
+    color: #fff;
+    padding: 20px;
+<!--    border-radius: 5px;-->
+}
+
+#main-content {
+    flex: 6;
+    padding: 20px; /* Add padding to main content */
+}
+
+#session-list ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#session-list ul li {
+    margin-bottom: 10px;
+}
+
+#session-list h2 {
+    margin-bottom: 10px;
+}
+ {% block css %}
+
+ {% endblock %}
+    </style>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">
+<!--        <img src="/media/logo1.jpg" width="30" height="30" alt="E-Commerce Logo">-->
+       📈 OpenAI
+    </a>
+<!--    <a class="navbar-brand" href="/">E-Commerce</a>-->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item {% if request.path == '/' %}active{% endif %} ">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+<!--            <li class="nav-item {% if request.path == '/about/' %}active{% endif %} ">-->
+<!--                <a class="nav-link" href="/about">About Us</a>-->
+<!--            </li>-->
+
+<!--            <li class="nav-item {% if request.path == '/tracker/' %}active{% endif %} ">-->
+<!--                <a class="nav-link" href="/tracker">Tracker</a>-->
+<!--            </li>-->
+
+            {% if request.session.username %}
+                <li class="nav-item {% if request.path == '/sessions/' %}active{% endif %} ">
+                    <a class="nav-link" href="/sessions">Sessions</a>
+                </li>
+<!--                <li class="nav-item {% if request.path == '/orders/' %}active{% endif %} ">-->
+<!--                    <a class="nav-link" href="/orders">Orders</a>-->
+<!--                </li>-->
+                <li class="nav-item {% if request.path == '/logout/' %}active{% endif %} ">
+                    <a class="nav-link" href="/logout">Logout ({{request.session.username}})</a>
+                </li>
+            {% else %}
+                <li class="nav-item {% if request.path == '/login/' %}active{% endif %} ">
+                    <a class="nav-link" href="/login">Login/SignUp</a>
+                </li>
+            {% endif %}
+        </ul>
+
+<!--        <form method='get' action='/search/' class="form-inline my-2 my-lg-0">-->
+<!--            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search"-->
+<!--                   id="search" onkeyup="getRecommendations()">-->
+<!--            <div id="searchResults" class="dropdown-menu" style="display: none;"></div>-->
+<!--            <button class="btn btn-outline-success my-2 my-sm-0" id="searchsubmit" type="submit">Search</button>-->
+<!--            <button class="btn btn-outline-success"  id="voiceButton" ><i class="fa fa-microphone" aria-hidden="true"></i></button>-->
+<!--        </form>-->
+
+<!--        <div class="d-flex">-->
+<!--        <input class="form-control me-2" type="vsearch" onkeyup="myFunction()" oninput="myFunction()" onchange="myFunction()"   id="vsearch"  placeholder="Search" aria-label="Search"/>-->
+<!--        <button class="btn btn-outline-success" onclick="voice()" ><i class="fa fa-microphone" aria-hidden="true"></i></button>-->
+<!--      </div>-->
+
+        <!-- Inside the <body> tag, after the navigation bar -->
+<!--        <div class="container mt-3">-->
+<!--         {% if request.session.username %}-->
+<!--        {% if request.session.username %}-->
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="profileDropdown" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    Profile
+                </button>
+                <div class="dropdown-menu dropdown-menu-sm" id="profile" aria-labelledby="profileDropdown">
+                    <a class="dropdown-item" href="/login/profile/">Profile</a>
+<!--                    <a class="dropdown-item" href="/profile/address/">Address</a>-->
+<!--                    <a class="dropdown-item" href="/profile/wishlist/">Wish List</a>-->
+<!--                    <a class="dropdown-item" href="/profile/recommendations/">Recommendations</a>-->
+                </div>
+            </div>
+<!--        {% endif %}-->
+<!--        </div>-->
+
+
+<!--        <button type="button" class="btn btn-secondary mx-2" id="popcart" data-container="body" data-toggle="popover"-->
+<!--                data-placement="bottom" data-html="true" data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus.">-->
+<!--            Cart(<span id="cart">0</span>)-->
+<!--        </button>-->
+
+<!--        {% endif %}-->
+    </div>
+</nav>
+
+
+
+
+{% block body %} {% endblock %}
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+        integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+        integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        crossorigin="anonymous"></script>
+
+<script>
+
+console.log("1234");
+
+if (localStorage.getItem('cart') == null) {
+        var cart = {};
+    }
+ else {
+    cart = JSON.parse(localStorage.getItem('cart'));
+    updateCart(cart);
+}
+
+
+    //Add Popover to cart
+<!--    $('#popcart').popover();-->
+    updatePopover(cart);
+
+    function updatePopover(cart) {
+<!--    console.log("abcd");-->
+<!--    console.log(cart);-->
+    <!--    console.log('We are inside updatePopover');-->
+        var popStr = "";
+        popStr = popStr + "<h5> Cart for your items in my shopping cart </h5><div class='mx-2 my-2'>";
+        var i = 1;
+        for (var item in cart) {
+            popStr = popStr + "<b>" + i + "</b>. ";
+<!--            popStr = popStr + document.getElementById('name' + item).innerHTML.slice(0, 19) + "... Qty: " + cart[item][0] + '<br>';-->
+            popStr = popStr + cart[item][1].slice(0, 19) + "... Qty: " + cart[item][0] + '<br>';
+            i = i + 1;
+        }
+        popStr = popStr + "</div> <a href='/checkout'  ><button class='btn btn-primary' id ='checkout'>Checkout</button></a> <button class='btn btn-primary' onclick='clearCart()' id ='clearCart'>Clear Cart</button>     "
+    <!--    console.log(popStr);-->
+        document.getElementById('popcart').setAttribute('data-content', popStr);
+        $('#popcart').popover('show');
+    }
+
+
+    function clearCart() {
+        cart = JSON.parse(localStorage.getItem('cart'));
+<!--           console.log(window.location.pathname );-->
+        if (window.location.pathname == '/')
+        {
+            for (var item in cart) {
+                document.getElementById('div' + item).innerHTML = '<button id="' + item + '" class="btn btn-primary cart">Add To Cart</button>'
+            }
+         }
+        localStorage.clear();
+        cart = {};
+        updateCart(cart);
+    }
+
+    function updateCart(cart) {
+        var sum = 0;
+        for (var item in cart) {
+            sum = sum + cart[item][0];
+            if (window.location.pathname == '/')
+            {
+                document.getElementById('div' + item).innerHTML = "<button id='minus" + item + "' class='btn btn-primary minus'>-</button> <span id='val" + item + "''>" + cart[item][0] + "</span> <button id='plus" + item + "' class='btn btn-primary plus'> + </button>";
+            }
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        document.getElementById('cart').innerHTML = sum;
+    <!--    console.log(cart);-->
+        updatePopover(cart);
+    }
+
+
+function getRecommendations() {
+    var searchInput = $('#search').val();
+
+    $.ajax({
+    type: 'GET',
+    url: '/search-recommendations/',
+    data: { search_input: searchInput },
+    success: function (data) {
+        try {
+<!--            var recommendations = JSON.parse(data);-->
+<!--            displayRecommendations(recommendations);-->
+            displayRecommendations(data);
+
+        } catch (error) {
+            console.error('Error parsing JSON:', error);
+            // Handle the error gracefully
+        }
+    },
+    error: function (error) {
+        console.error('AJAX error:', error);
+        // Handle the AJAX error gracefully
+    }
+    });
+
+}
+
+function displayRecommendations(data) {
+        var resultsDiv = document.getElementById('searchResults');
+     var searchInput = $('#search');
+
+        var recommendations = data;
+<!--        console.log(data);-->
+        resultsDiv.innerHTML = "";
+        if (recommendations.length > 0) {
+            for (var i = 0; i < recommendations.length; i++) {
+                var suggestion = recommendations[i];
+                var suggestionElement = document.createElement('a');
+                suggestionElement.href = '/search/?search=' + suggestion; // Adjust the URL as needed
+                suggestionElement.classList.add('dropdown-item');
+                suggestionElement.textContent = suggestion;
+                suggestionElement.addEventListener('click', function () {
+                    document.getElementById('search').value = this.textContent;
+                    document.forms[0].submit(); // Submit the form on suggestion click
+                });
+                resultsDiv.appendChild(suggestionElement);
+            }
+<!--            console.log(resultsDiv.innerHTML);-->
+
+            resultsDiv.style.display = 'block'; // Show the suggestions dropdown
+        } else {
+            resultsDiv.style.display = 'none'; // Hide the suggestions dropdown if no results
+        }
+    }
+
+// ... (other functions remain unchanged)
+
+<!--$(document).on('click', function (event) {-->
+<!--    console.log('Clicked:', event.target);-->
+<!--        $('#searchResults').hide();-->
+<!--});-->
+
+    $('.dropdown-toggle').dropdown();
+
+
+ document.getElementById("voiceButton").addEventListener("click", voice);
+ e.preventDefault();
+    async function voice(e){
+        e.preventDefault();
+        console.log("sma");
+        var recognisation = await new webkitSpeechRecognition();
+            recognisation.lang = 'en-GB';
+            recognisation.start();
+            recognisation.onresult = await function(event){
+                console.log(event.results[0][0].transcript);
+                document.getElementById('search').value = event.results[0][0].transcript;
+                document.getElementById("searchsubmit").click();
+            }
+    }
+
+
+
+
+</script>
+
+    {% block js %}
+
+    {% endblock %}
+  </body>
+</html>

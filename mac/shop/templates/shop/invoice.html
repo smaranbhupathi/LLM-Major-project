@@ -1,0 +1,166 @@
+{% extends 'shop/basic.html' %}
+
+{% block css %}
+.body {
+    margin-top: 20px;
+    background-color: #eee;
+}
+
+.card {
+    box-shadow: 0 20px 27px 0 rgb(0 0 0 / 5%);
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 0 solid rgba(0, 0, 0, .125);
+    border-radius: 1rem;
+}
+
+{% endblock %}
+
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css"
+    integrity="sha256-2XFplPlrFClt0bIdPgpz8H7ojnk10H69xRqd9+uTShA=" crossorigin="anonymous" />
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="invoice-title d-flex justify-content-between align-items-start">
+
+                        <div class="text-muted">
+<!--                            <img src="/media/logo1.jpg" width="30" height="30" alt="E-Commerce Logo">-->
+                            <h4 class="mb-1 text-muted" >Ecommerce.com</h4>
+                            <p class="mb-1">Seattle, Washington, United States </p>
+                            <p class="mb-1"><i class="uil uil-envelope-alt me-1"></i> ecommerce@gmail.com</p>
+                            <p><i class="uil uil-phone me-1"></i> 012-345-6789</p>
+                        </div>
+
+                        <div style ="text-align: right;">
+                            <h5> Order Id# {{order.order_id}} </h5>
+                            <h6> {{order.timestamp}} </h6>
+                            <h4> <span class="badge bg-success font-size-12 ms-2">Paid</span></h4>
+
+                        </div>
+
+
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="text-muted" >
+                                <h5 class="font-size-16 mb-3">Billed To:</h5>
+                                <h5 class="font-size-15 mb-2">{{ order.shipfrom }}</h5>
+                                <p class="mb-1">{{ order.email }}</p>
+                                <p>{{ order.phone }}</p>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <div class="text-muted" style ="text-align: right;">
+                                <h5 class="font-size-16 mb-3">Shipped To:</h5>
+                                <h5 class="font-size-15 mb-2">{{ order.shipto }}</h5>
+                                <p class="font-size-15 mb-2">{{ order.address }}</p>
+                                <p class="font-size-15 mb-2">{{ order.city }} {{ order.state }} {{ order.zip_code }}</p>
+                            </div>
+                        </div>
+                        <!-- end col -->
+
+                        <!-- end col -->
+                    </div>
+                    <!-- end row -->
+
+                    <div class="py-2" style="text-align: center">
+                        <h5 class="font-size-15" >Order Summary</h5>
+
+                        <div class="table-responsive" >
+                            <table class="table align-middle table-nowrap table-centered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70px;">No.</th>
+                                        <th>Image</th>
+                                        <th>Item</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end" style="width: 120px;">Total</th>
+                                    </tr>
+                                </thead><!-- end thead -->
+                                <tbody>
+
+
+                                {% for key, item_data in order.items_json.items %}
+                                    {% with qty=item_data.0|floatformat item=item_data.1 price=item_data.2|floatformat:"2" %}
+                                    <tr>
+                                        <th scope="row">{{ forloop.counter }}</th>
+                                        <td> <img src="/media/{{ item_data.3 }}" alt="{{ item }}" width="100" height="100"> </td>
+                                        <td>
+                                            <div>
+                                                <h5 class="text-truncate font-size-14 mb-1">{{ item }}</h5>
+                                            </div>
+                                        </td>
+                                        <td>{{ price }}</td>
+                                        <td>{{ qty }}</td>
+                                        <td class="text-end">Rs {{ item_data.4 }}</td>
+                                    </tr>
+                                    {% endwith %}
+                                {% endfor %}
+                                    <!-- end tr -->
+                                    <tr>
+                                        <th scope="row" colspan="5" style="text-align: right;" class="text-end">Sub Total</th>
+                                        <td class="text-end" >Rs. {{ order.amount }}</td>
+                                    </tr>
+                                
+                                   <tr>
+                                        <th scope="row" colspan="5" style="text-align: right;" class="border-0 text-end">
+                                            Discount :</th>
+                                        <td class="border-0 text-end"> 0.00</td>
+                                    </tr>
+                                    <!-- end tr -->
+                                    <tr>
+                                        <th scope="row" colspan="5" style="text-align: right;" class="border-0 text-end">
+                                            Shipping Charge :</th>
+                                        <td class="border-0 text-end"> 0.00</td>
+                                    </tr>
+                                    <!-- end tr -->
+                                    <tr>
+                                        <th scope="row" colspan="5" style="text-align: right;" class="border-0 text-end">
+                                            Tax</th>
+                                        <td class="border-0 text-end"> 0.00</td>
+                                    </tr>
+                                    <!-- end tr -->
+                                    <tr>
+                                        <th scope="row" colspan="5" style="text-align: right; font-size: 20px" class="border-0 m-0 text-end">Total</th>
+                                        <td class="border-0 text-end"><h4 class="m-0 fw-semibold">Rs. {{ order.amount }}</h4></td>
+                                    </tr>
+                                </tbody><!-- end tbody -->
+                            </table><!-- end table -->
+                        </div><!-- end table responsive -->
+                        <div class="d-print-none mt-4">
+                            <div class="float-end">
+                                <a href="javascript:window.print()" class="btn btn-success me-1"><i class="fa fa-print"></i></a>
+                                <a href="#" class="btn btn-primary w-md">Send</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- end col -->
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+    <script>
+$('#popcart').popover();
+    </script>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'shop/basic.html' %}
+{% block title%} My Awesome Cart Tracker{% endblock %}
+{% block css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        margin-top: 50px;
+    }
+
+    h2 {
+        color: #007bff;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .list-group-item {
+        background-color: #ffffff;
+        margin-top: 10px;
+    }
+
+    .badge-primary {
+        background-color: #007bff;
+    }
+
+    .order-details-container {
+        text-align: center;
+        margin: 20px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+
+    .order-details {
+        border-bottom: 2px solid #007bff;
+        margin-bottom: 20px;
+    }
+
+    .cart-items {
+        margin-top: 20px;
+    }
+
+    p {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    h5 {
+        color: #007bff;
+    }
+
+
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="col my-4">
+        <h2>Enter your Order Id and Email address to track your order</h2>
+        <form method="post" action="#" id="trackerForm">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputname">Order Id</label>
+                    <input type="text" class="form-control" id="orderId" name="orderId" placeholder="Order Id">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email">
+                </div>
+                <button type="submit" class="btn btn-primary">Track Order</button>
+            </div>
+        </form>
+    </div>
+    <div class="col my-4">
+        <h2>Your Order Status</h2>
+        <div class="my-4">
+            <ul class="list-group" id="items">
+                Enter your order Id and Email and click Track Order to find details about your order!
+            </ul>
+        </div>
+        <h2>Your Order Details</h2>
+        <div class="my-4">
+            <ul class="list-group" id="citems">
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    $('#trackerForm').submit(function(event) {
+        $('#items').empty();
+        var formData = {
+            'orderId': $('input[name=orderId]').val(),
+            'email': $('input[name=email]').val(),
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+        };
+        $.ajax({
+                type: 'POST',
+                url: '/tracker/',
+                data: formData,
+                encode: true
+            })
+            .done(function(data) {
+
+                if ( data == '{}' )
+                {
+                mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        Enter credentials </li>`
+                    $('#items').append(mystr);
+                    return ;
+                 }
+                 data = JSON.parse(data);
+
+                updates = data[0];
+                console.log(updates);
+
+                if (updates != {} &updates.length > 0 ) {
+                    for (i = 0; i < updates.length; i++) {
+                        let text = updates[i]['text'];
+                        let time = updates[i]['time'];
+                        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${text}
+                        <span class="badge badge-primary badge-pill">${time}</span>
+                    </li>`
+                        $('#items').append(mystr);
+                    }
+                } else {
+                    mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        Sorry, We are not able to fetch this order id and email. Make sure to type correct order Id and email</li>`
+                    $('#items').append(mystr);
+                }
+                // Fill in the order details
+
+                order = data[1];
+                console.log(order);
+
+                mystr = ""
+     mystr = `
+        <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; margin: 20px;">
+            <h3 style="color: #007bff; margin-bottom: 15px;">Order Details</h3>
+            <p><strong>Order Id:</strong> ${order["order_id"]}</p>
+            <div style="display: flex; justify-content: space-round; margin-bottom: 10px; ">
+
+                <div style="flex-grow: 1; text-align: left; padding: 0px 100px 0px 100px">
+                    <p> <strong> Bill To </strong> </p>
+                    <p>${order["shipfrom"]}</p>
+                    <p>${order["email"]}</p>
+
+                </div>
+
+                <div style="flex-grow: 1; text-align: left; padding: 0px 100px 0px 100px">
+                    <p> <strong> Delivery To </strong>  </p>
+                    <p>${order["shipto"]}</p>
+                    <p>${order["address"]}, ${order["city"]}, ${order["state"]}</p>
+                    <p>${order["zip_code"]}</p>
+                    <p>${order["phone"]}</p>
+                </div>
+            </div>
+
+
+            <hr style="border-top: 1px solid #007bff; margin: 15px 0;">
+            <h4 style="color: #007bff; margin-bottom: 10px;">Ordered Products</h4>
+        `;
+
+    mystr+=
+  `      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <tr>
+        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">Item</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">Qty</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">Rate</th>
+    </tr>`
+
+    for (item in cart) {
+        let name = cart[item][1];
+        let qty = cart[item][0];
+        let price = cart[item][2];
+
+    mystr+=
+    `  <tr>
+        <td style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">${name}</td>
+        <td style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">${qty}</td>
+        <td style="padding: 8px; text-align: left; border-bottom: 1px solid #007bff;">${price}</td>
+    </tr>`
+<!--        mystr += `<p>${name}: ${qty} , ${price}</p>`;-->
+    }
+
+    mystr+=` </table>`
+
+    mystr += ` <p><strong>Amount Paid:</strong> ${order["amount"]}</p> </div>`;
+
+                $('#citems').append(mystr);
+            });
+        event.preventDefault();
+    });
+</script>
+{% endblock %}
